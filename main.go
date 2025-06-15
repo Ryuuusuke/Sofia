@@ -2,19 +2,19 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/chromedp/chromedp"
 	"github.com/joho/godotenv"
-	"golang.org/x/net/html"
 )
 
 const (
@@ -144,28 +144,16 @@ func getUrl(message string) []string {
 }
 
 func getUrlTitle(url string) (string, error) {
-	resp, err := http.Get(url)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	ctx, cancelBrowser := chromedp.NewContext(ctx)
+	defer cancelBrowser()
+
+	var title string
+	err := chromedp.Run(ctx, chromedp.Navigate(url), chromedp.Title(&title))
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
-
-	z := html.NewTokenizer(resp.Body)
-	for {
-		title := z.Next()
-		switch title {
-
-		case html.ErrorToken:
-			return "", fmt.Errorf("%s", "Title not found")
-
-		case html.StartTagToken:
-			t := z.Token()
-			if t.Data == "title" {
-				z.Next()
-				return strings.TrimSpace(z.Token().Data), nil
-			}
-
-		}
-
-	}
+	return title, nil
 }
