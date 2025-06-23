@@ -127,7 +127,7 @@ func main() {
 						fmt.Printf("Gagal fetch title dari %s: %s\n", url, err)
 						continue
 					}
-					reply := fmt.Sprintf("PRIVMSG %s :[Title] %s (sent by %s)\r\n", channel, title, sender)
+					reply := fmt.Sprintf("PRIVMSG %s :[\x0309Title\x0F] %s (sent by %s)\r\n", channel, title, sender)
 					fmt.Fprint(conn, reply)
 				}
 
