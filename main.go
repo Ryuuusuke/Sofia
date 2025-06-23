@@ -5,9 +5,11 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -24,6 +26,10 @@ const (
 	channel  = "##sofia"
 	realname = "Ratu Sofia"
 )
+
+type YtOembedResp struct {
+	Title string `json:"title"`
+}
 
 func main() {
 	err := godotenv.Load()
@@ -144,6 +150,28 @@ func getUrl(message string) []string {
 }
 
 func getUrlTitle(url string) (string, error) {
+	if isYt(url) {
+		oembedURL := "https://www.youtube.com/oembed?url=" + url
+
+		resp, err := http.Get(oembedURL)
+		if err != nil {
+			return "", fmt.Errorf("gagal mengambil data dari oEmbed: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("status code bukan 200 dari oEmbed: %d", resp.StatusCode)
+		}
+
+		var oembedResp YtOembedResp
+		err = json.NewDecoder(resp.Body).Decode(&oembedResp)
+		if err != nil {
+			return "", fmt.Errorf("gagal decode JSON dari oEmbed: %w ", err)
+		}
+
+		return oembedResp.Title, nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -156,4 +184,9 @@ func getUrlTitle(url string) (string, error) {
 		return "", err
 	}
 	return title, nil
+}
+
+func isYt(url string) bool {
+	lower := strings.ToLower(url)
+	return strings.Contains(lower, "youtube.com/watch") || strings.Contains(lower, "youtu.be/")
 }
