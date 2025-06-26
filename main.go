@@ -21,7 +21,7 @@ import (
 
 const (
 	server   = "irc.libera.chat:6697"
-	nickname = "Sofiaaa"
+	nickname = "Sofiaa"
 	username = "SofiaPertama"
 	channel  = "##sofia"
 	realname = "Ratu Sofia"
@@ -101,6 +101,9 @@ func main() {
 		if !joined && strings.Contains(line, " 001 ") {
 			fmt.Fprintf(conn, "JOIN %s\r\n", channel)
 			joined = true
+
+			go StartRSSLoop(conn, channel)
+
 			continue
 		}
 
