@@ -33,7 +33,7 @@ owner = Ryuuusuke
 repo = Sofia
 ```
 
-> Make sure to wrap the `channel` value in backticks (`) so that the `#\` character is not treated as a comment by the parser.
+> Make sure to wrap the `channel` value in backticks (\`) so that the `#` character is not treated as a comment by the parser.
 
 <br>
 
