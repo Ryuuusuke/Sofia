@@ -92,5 +92,3 @@ Kamu bisa menambahkan modul RSS kamu sendiri di folder `rss/`. Bot sudah modular
 Proyek ini dilisensikan di bawah **BSD 3-Clause License**.  
 Silakan lihat file [`LICENSE`](./LICENSE) untuk detail lengkapnya.
 
-
----
