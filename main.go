@@ -137,7 +137,7 @@ func main() {
 				for _, url := range urls {
 					title, err := getUrlTitle(url)
 					if err != nil {
-						fmt.Printf("Gagal fetch title dari %s: %s\n", url, err)
+						fmt.Printf("failed to fetch web title from %s: %s\n", url, err)
 						continue
 					}
 					reply := fmt.Sprintf("PRIVMSG %s :[\x0309Title\x0F] %s (sent by %s)\r\n", channel, title, sender)
@@ -168,18 +168,18 @@ func getUrlTitle(url string) (string, error) {
 
 		resp, err := http.Get(oembedURL)
 		if err != nil {
-			return "", fmt.Errorf("gagal mengambil data dari oEmbed: %w", err)
+			return "", fmt.Errorf("failed to fetch oEmbed data: %w", err)
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("status code bukan 200 dari oEmbed: %d", resp.StatusCode)
+			return "", fmt.Errorf("oEmbed status code is not 200: %d", resp.StatusCode)
 		}
 
 		var oembedResp YtOembedResp
 		err = json.NewDecoder(resp.Body).Decode(&oembedResp)
 		if err != nil {
-			return "", fmt.Errorf("gagal decode JSON dari oEmbed: %w ", err)
+			return "", fmt.Errorf("failed to decode oEmbed JSON: %w ", err)
 		}
 
 		return oembedResp.Title, nil

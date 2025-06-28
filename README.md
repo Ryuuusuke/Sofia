@@ -1,73 +1,96 @@
-# Sofiaaa IRC Bot
+# Sofia IRC Bot
 
-**Sofiaaa** is a simple IRC bot written in Go that can:
+**Sofia** adalah bot IRC ringan yang ditulis dalam bahasa Go. Bot ini mendukung:
+- Autentikasi SASL
+- Fetch judul dari link (termasuk YouTube)
+- Loop RSS (modular)
+- Kirim pesan langsung dari terminal (stdin)
+- Konfigurasi via file `.ini`
 
-- Send a welcome message when someone joins the channel.
-- Detect and fetch webpage titles from URLs mentioned in messages.
-- Authenticate using SASL to NickServ on the Libera.Chat network.
+---
 
-## Features
+## 🔧 Konfigurasi
 
-- **SASL authentication** to NickServ (required by Libera.Chat).
-- **Automatic greetings** to users who join the channel.
-- **URL title fetcher** – detects links in messages and posts their `<title>`.
+Buat file bernama `config.ini` di direktori utama:
 
-## Getting Started
+```ini
+[sasl]
+sasl = true
+user = your-sasl-username
+password = your-sasl-password
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/yourusername/sofiaaa-bot.git
-cd sofiaaa-bot
+[irc]
+server = irc.libera.chat:6697
+nickname = sofiaaa
+username = SofiaPertama
+realname = Ratu Sofia
+channel = `##sofia`
 ````
 
-### 2. Create a `.env` file
+> Pastikan kamu menggunakan backtick (`) untuk nilai `channel`agar karakter`#\` tidak dianggap komentar.
 
-Create a `.env` file in the project root with your NickServ credentials:
+---
 
-```env
-SASL_USER=Sofiaaa
-SASL_PASS=your_nickserv_password_here
-```
-
-> ⚠️ **Warning**: Do **not** commit `.env` to version control!
-
-### 3. Run the bot
+## 🚀 Cara Menjalankan
 
 ```bash
 go run main.go
 ```
 
-Make sure your system allows outbound TLS connections to `irc.libera.chat:6697`.
-
-## Dependencies
-
-* [`golang.org/x/net/html`](https://pkg.go.dev/golang.org/x/net/html) – for parsing HTML titles.
-* [`github.com/joho/godotenv`](https://github.com/joho/godotenv) – to load `.env` variables.
-
-Install with:
+Atau build dulu:
 
 ```bash
-go get github.com/joho/godotenv
-go get golang.org/x/net/html
+go build -o sofia .
+./sofia
 ```
 
-## File Structure
+---
+
+## 🖥️ Kirim Pesan dari Terminal
+
+Ketik langsung di terminal tempat kamu menjalankan bot untuk mengirim pesan ke channel IRC yang sudah dikonfigurasi.
+
+---
+
+## 🌐 Fitur Link Preview
+
+* Bila seseorang kirim tautan di channel, bot akan mencoba mengambil **judul halaman** secara otomatis.
+* Link YouTube akan difetch menggunakan [YouTube oEmbed API](https://www.youtube.com/oembed).
+* Untuk halaman biasa, bot menggunakan `chromedp` (headless Chrome via Go) untuk ambil judul `<title>`.
+
+---
+
+## 📰 RSS Feed
+
+Kamu bisa menambahkan modul RSS kamu sendiri di folder `rss/`. Bot sudah modular dan mendukung fungsi loop RSS yang bisa dimodifikasi sesuai kebutuhan.
+
+---
+
+## 🧱 Struktur Direktori
 
 ```
 .
-├── main.go        # Main bot logic
-├── .env           # Secret credentials (should be in .gitignore)
-└── README.md      # This documentation
+├── main.go          # Entry point
+├── config.ini       # Config file (user provided)
+├── stdin/           # Modul pembaca dari stdin
+├── rss/             # Modul RSS handler
+└── go.mod           # Module file
 ```
 
-## Planned Features
+---
 
-* Logging to a file
-* Basic IRC commands (e.g., `!ping`, `!help`)
-* Spam or keyword filtering
+## 📦 Dependencies
 
-## License
+* [`go-ini/ini`](https://github.com/go-ini/ini) - Untuk parsing config `.ini`
+* [`chromedp`](https://github.com/chromedp/chromedp) - Untuk mengambil title dari halaman web
+* Standard Go libraries (`net`, `bufio`, `tls`, `regexp`, dll)
 
-This project is licensed under the BSD 3-Clause License.  
-See the [LICENSE](./LICENSE) file for details.
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah **BSD 3-Clause License**.  
+Silakan lihat file [`LICENSE`](./LICENSE) untuk detail lengkapnya.
+
+
+---
