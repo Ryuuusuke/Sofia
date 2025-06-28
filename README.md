@@ -12,7 +12,7 @@
 
 ## 🔧 Configuration
 
-Create a file named `config.ini` in the root directory:
+Copy `config.ini.example` to `config.ini` and edit the file:
 
 ```ini
 [sasl]
@@ -26,6 +26,11 @@ nickname = sofiaaa
 username = SofiaPertama
 realname = Ratu Sofia
 channel = `##sofia`
+
+[github]
+enabled = true
+owner = Ryuuusuke
+repo = Sofia
 ```
 
 > Make sure to wrap the `channel` value in backticks (`) so that the `#\` character is not treated as a comment by the parser.
