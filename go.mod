@@ -16,4 +16,5 @@ require (
 	github.com/gobwas/ws v1.4.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 )

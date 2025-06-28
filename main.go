@@ -10,21 +10,14 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
+	"sofia/rss"
+	"sofia/stdin"
 	"strings"
 	"time"
 
 	"github.com/chromedp/chromedp"
-	"github.com/joho/godotenv"
-)
-
-const (
-	server   = "irc.libera.chat:6697"
-	nickname = "Sofiaa"
-	username = "SofiaPertama"
-	channel  = "##sofia"
-	realname = "Ratu Sofia"
+	"gopkg.in/ini.v1"
 )
 
 type YtOembedResp struct {
@@ -32,13 +25,21 @@ type YtOembedResp struct {
 }
 
 func main() {
-	err := godotenv.Load()
+	cfg, err := ini.Load("config.ini")
 	if err != nil {
-		log.Fatal("Cant load .env file")
+		log.Fatalf("Can't load config: %v", err)
 	}
 
-	saslUser := os.Getenv("SASL_USER")
-	saslPass := os.Getenv("SASL_PASS")
+	server := cfg.Section("irc").Key("server").String()
+	channel := cfg.Section("irc").Key("channel").String()
+	nickname := cfg.Section("irc").Key("nickname").String()
+	username := cfg.Section("irc").Key("username").String()
+	realname := cfg.Section("irc").Key("realname").String()
+
+	useSasl, err := cfg.Section("sasl").Key("sasl").Bool()
+	if err != nil {
+		log.Fatalf("Can't not read useSasl %v", err)
+	}
 
 	conn, err := tls.Dial("tcp", server, &tls.Config{
 		ServerName: "irc.libera.chat",
@@ -53,6 +54,9 @@ func main() {
 
 	fmt.Fprintf(conn, "CAP REQ :sasl\r\n")
 
+	go stdin.HandleStdin(conn)
+
+	// core
 	for {
 		line, err := reader.ReadString('\n')
 		if err != nil {
@@ -72,37 +76,43 @@ func main() {
 			continue
 		}
 
-		if strings.Contains(line, "CAP") && strings.Contains(line, "ACK") {
-			fmt.Fprintf(conn, "AUTHENTICATE PLAIN\r\n")
-			continue
-		}
+		if useSasl {
 
-		if line == "AUTHENTICATE +" {
-			payload := fmt.Sprintf("\x00%s\x00%s", saslUser, saslPass)
-			encoded := base64.StdEncoding.EncodeToString([]byte(payload))
-			fmt.Fprintf(conn, "AUTHENTICATE %s\r\n", encoded)
-			continue
-		}
+			saslUser := cfg.Section("sasl").Key("user").String()
+			saslPass := cfg.Section("sasl").Key("password").String()
 
+			if strings.Contains(line, "CAP") && strings.Contains(line, "ACK") {
+				fmt.Fprintf(conn, "AUTHENTICATE PLAIN\r\n")
+				continue
+			}
+
+			if line == "AUTHENTICATE +" {
+				payload := fmt.Sprintf("\x00%s\x00%s", saslUser, saslPass)
+				encoded := base64.StdEncoding.EncodeToString([]byte(payload))
+				fmt.Fprintf(conn, "AUTHENTICATE %s\r\n", encoded)
+				continue
+			}
+
+			if strings.Contains(line, " 904 ") {
+				fmt.Println("SASL gagal")
+				fmt.Fprintf(conn, "CAP END\r\n")
+				break
+			}
+
+		}
 		if strings.Contains(line, " 903 ") {
-			fmt.Println("SASL sucess")
+			fmt.Println("Login sucess")
 			fmt.Fprintf(conn, "CAP END\r\n")
 			fmt.Fprintf(conn, "NICK %s\r\n", nickname)
 			fmt.Fprintf(conn, "USER %s 8 * :%s\r\n", username, realname)
 			continue
 		}
 
-		if strings.Contains(line, " 904 ") {
-			fmt.Println("SASL gagal")
-			fmt.Fprintf(conn, "CAP END\r\n")
-			break
-		}
-
 		if !joined && strings.Contains(line, " 001 ") {
 			fmt.Fprintf(conn, "JOIN %s\r\n", channel)
 			joined = true
 
-			go StartRSSLoop(conn, channel)
+			go rss.StartRSSLoop(conn, channel)
 
 			continue
 		}
