@@ -1,17 +1,18 @@
 # Sofia IRC Bot
 
-**Sofia** adalah bot IRC ringan yang ditulis dalam bahasa Go. Bot ini mendukung:
-- Autentikasi SASL
-- Fetch judul dari link (termasuk YouTube)
-- Loop RSS (modular)
-- Kirim pesan langsung dari terminal (stdin)
-- Konfigurasi via file `.ini`
+**Sofia** is a lightweight IRC bot written in Go. It supports:
 
----
+* SASL authentication
+* Link title fetching (including YouTube)
+* RSS looping (modular)
+* Sending messages directly from terminal (stdin)
+* Configuration via `.ini` file
 
-## 🔧 Konfigurasi
+<br>
 
-Buat file bernama `config.ini` di direktori utama:
+## 🔧 Configuration
+
+Create a file named `config.ini` in the root directory:
 
 ```ini
 [sasl]
@@ -25,70 +26,72 @@ nickname = sofiaaa
 username = SofiaPertama
 realname = Ratu Sofia
 channel = `##sofia`
-````
+```
 
-> Pastikan kamu menggunakan backtick (`) untuk nilai `channel`agar karakter`#\` tidak dianggap komentar.
+> Make sure to wrap the `channel` value in backticks (`) so that the `#\` character is not treated as a comment by the parser.
 
----
+<br>
 
-## 🚀 Cara Menjalankan
+## 🚀 Running the Bot
+
+Run directly with:
 
 ```bash
 go run main.go
 ```
 
-Atau build dulu:
+Or build it first:
 
 ```bash
 go build -o sofia .
 ./sofia
 ```
 
----
+<br>
 
-## 🖥️ Kirim Pesan dari Terminal
+## 🖥️ Sending Messages from Terminal
 
-Ketik langsung di terminal tempat kamu menjalankan bot untuk mengirim pesan ke channel IRC yang sudah dikonfigurasi.
+Type directly into the terminal where the bot is running to send a message to the configured IRC channel.
 
----
+<br>
 
-## 🌐 Fitur Link Preview
+## 🌐 Link Preview Feature
 
-* Bila seseorang kirim tautan di channel, bot akan mencoba mengambil **judul halaman** secara otomatis.
-* Link YouTube akan difetch menggunakan [YouTube oEmbed API](https://www.youtube.com/oembed).
-* Untuk halaman biasa, bot menggunakan `chromedp` (headless Chrome via Go) untuk ambil judul `<title>`.
+* When someone posts a link in the channel, the bot will try to fetch the **page title** automatically.
+* YouTube links are fetched using the [YouTube oEmbed API](https://www.youtube.com/oembed).
+* For regular webpages, the bot uses `chromedp` (headless Chrome via Go) to extract the `<title>`.
 
----
+<br>
 
 ## 📰 RSS Feed
 
-Kamu bisa menambahkan modul RSS kamu sendiri di folder `rss/`. Bot sudah modular dan mendukung fungsi loop RSS yang bisa dimodifikasi sesuai kebutuhan.
+You can add your own RSS modules under the `rss/` folder.
+The bot is modular and supports custom RSS loops tailored to your needs.
 
----
+<br>
 
-## 🧱 Struktur Direktori
+## 🧱 Directory Structure
 
 ```
 .
 ├── main.go          # Entry point
-├── config.ini       # Config file (user provided)
-├── stdin/           # Modul pembaca dari stdin
-├── rss/             # Modul RSS handler
-└── go.mod           # Module file
+├── config.ini       # User-provided config file
+├── stdin/           # Module for stdin input
+├── rss/             # RSS handler module
+└── go.mod           # Go module file
 ```
 
----
+<br>
 
 ## 📦 Dependencies
 
-* [`go-ini/ini`](https://github.com/go-ini/ini) - Untuk parsing config `.ini`
-* [`chromedp`](https://github.com/chromedp/chromedp) - Untuk mengambil title dari halaman web
-* Standard Go libraries (`net`, `bufio`, `tls`, `regexp`, dll)
+* [`go-ini/ini`](https://github.com/go-ini/ini) - For parsing `.ini` configuration files
+* [`chromedp`](https://github.com/chromedp/chromedp) - For fetching web page titles via headless Chrome
+* Go standard libraries (`net`, `bufio`, `tls`, `regexp`, etc.)
 
----
+<br>
 
-## 📄 Lisensi
+## 📄 License
 
-Proyek ini dilisensikan di bawah **BSD 3-Clause License**.  
-Silakan lihat file [`LICENSE`](./LICENSE) untuk detail lengkapnya.
-
+This project is licensed under the **BSD 3-Clause License**.
+See the [`LICENSE`](./LICENSE) file for full details.
