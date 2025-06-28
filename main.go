@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"sofia/modules/github"
 	"sofia/rss"
 	"sofia/stdin"
 	"strings"
@@ -113,6 +114,7 @@ func main() {
 			joined = true
 
 			go rss.StartRSSLoop(conn, channel)
+			go github.StartGithubWatcher(cfg, conn, channel)
 
 			continue
 		}
