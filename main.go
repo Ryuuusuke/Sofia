@@ -113,7 +113,7 @@ func main() {
 			fmt.Fprintf(conn, "JOIN %s\r\n", channel)
 			joined = true
 
-			go rss.StartRSSLoop(conn, channel)
+			go rss.StartRSSLoop(cfg, conn, channel)
 			go github.StartGithubWatcher(cfg, conn, channel)
 
 			continue

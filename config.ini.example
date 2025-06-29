@@ -17,3 +17,7 @@ enabled = true
 owner = Ryuuusuke
 repo = Sofia
 interval = 10
+
+[rss]
+urls = https://myanimelist.net/rss/news.xml, https://www.animenewsnetwork.com/all/rss.xml
+interval = 10

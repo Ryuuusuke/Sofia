@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-)
 
-const rssURL = "https://myanimelist.net/rss/news.xml"
+	"gopkg.in/ini.v1"
+)
 
 type RSS struct {
 	Channel Channel `xml:"channel"`
@@ -18,6 +18,7 @@ type RSS struct {
 
 type Channel struct {
 	Items []Item `xml:"item"`
+	Title string `xml:"title"`
 }
 
 type Item struct {
@@ -26,20 +27,20 @@ type Item struct {
 	PubDate string `xml:"PubDate"`
 }
 
-func FetchRSS() ([]Item, error) {
-	resp, err := http.Get(rssURL)
+func FetchRSS(feedURL string) ([]Item, string, error) {
+	resp, err := http.Get(feedURL)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer resp.Body.Close()
 
 	var rss RSS
 	err = xml.NewDecoder(resp.Body).Decode(&rss)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return rss.Channel.Items, nil
+	return rss.Channel.Items, rss.Channel.Title, nil
 }
 
 func removeQueryParams(rawUrl string) string {
@@ -52,24 +53,38 @@ func removeQueryParams(rawUrl string) string {
 	return parsed.String()
 }
 
-func StartRSSLoop(conn io.Writer, channel string) {
-	var lastSent string
+func StartRSSLoop(cfg *ini.File, conn io.Writer, channel string) {
+	rssSec := cfg.Section("rss")
+	rawUrls := rssSec.Key("urls").Strings(",")
 
-	for {
-		items, err := FetchRSS()
-		if err != nil {
-			log.Println("Gagal mengambil RSS: ", err)
-			time.Sleep(10 * time.Minute)
-			continue
-		}
-
-		if len(items) > 0 && items[0].Link != lastSent {
-			lastSent = items[0].Link
-			cleanLink := removeQueryParams(items[0].Link)
-			msg := fmt.Sprintf("PRIVMSG %s : [\x0302MAL News\x0F] %s - %s\r\n", channel, items[0].Title, cleanLink)
-			fmt.Fprint(conn, msg)
-		}
-
-		time.Sleep(10 * time.Minute)
+	if len(rawUrls) == 0 {
+		log.Println("> RSS: No URL feed has been set")
+		return
 	}
+
+	interval := rssSec.Key("interval").MustInt(10)
+	lastSent := make(map[string]string)
+
+	go func() {
+		for _, feedUrl := range rawUrls {
+			items, source, err := FetchRSS(feedUrl)
+			if err != nil {
+				log.Printf("> RSS: Failed to fetch from %s: %v\n", feedUrl, err)
+				continue
+			}
+
+			if len(items) == 0 {
+				continue
+			}
+
+			latest := items[0]
+			if lastSent[feedUrl] != latest.Link {
+				lastSent[feedUrl] = latest.Link
+				cleanURL := removeQueryParams(latest.Link)
+				fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, latest.Title, cleanURL)
+			}
+
+		}
+		time.Sleep(time.Duration(interval) * time.Minute)
+	}()
 }
