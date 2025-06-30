@@ -66,25 +66,27 @@ func StartRSSLoop(cfg *ini.File, conn io.Writer, channel string) {
 	lastSent := make(map[string]string)
 
 	go func() {
-		for _, feedUrl := range rawUrls {
-			items, source, err := FetchRSS(feedUrl)
-			if err != nil {
-				log.Printf("> RSS: Failed to fetch from %s: %v\n", feedUrl, err)
-				continue
-			}
+		for {
+			for _, feedUrl := range rawUrls {
+				items, source, err := FetchRSS(feedUrl)
+				if err != nil {
+					log.Printf("> RSS: Failed to fetch from %s: %v\n", feedUrl, err)
+					continue
+				}
 
-			if len(items) == 0 {
-				continue
-			}
+				if len(items) == 0 {
+					continue
+				}
 
-			latest := items[0]
-			if lastSent[feedUrl] != latest.Link {
-				lastSent[feedUrl] = latest.Link
-				cleanURL := removeQueryParams(latest.Link)
-				fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, latest.Title, cleanURL)
-			}
+				latest := items[0]
+				if lastSent[feedUrl] != latest.Link {
+					lastSent[feedUrl] = latest.Link
+					cleanURL := removeQueryParams(latest.Link)
+					fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, latest.Title, cleanURL)
+				}
 
+			}
+			time.Sleep(time.Duration(interval) * time.Minute)
 		}
-		time.Sleep(time.Duration(interval) * time.Minute)
 	}()
 }
