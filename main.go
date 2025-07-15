@@ -133,6 +133,9 @@ func main() {
 
 		if strings.Contains(line, "PRIVMSG "+channel) {
 			message := line
+			if strings.Contains(message, "(re") {
+				continue
+			}
 			if strings.Contains(message, "http") {
 				sender := getNickname(line)
 				urls := getUrl(message)
