@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"gopkg.in/ini.v1"
@@ -83,7 +84,10 @@ func StartRSSLoop(cfg *ini.File, conn io.Writer, channel string) {
 	}
 
 	interval := rssSec.Key("interval").MustInt(10)
-	lastSent := make(map[string]string)
+
+	lastSeen := make(map[string]string)
+
+	pendingItems := make(map[string][]Item)
 
 	go func() {
 		for {
@@ -98,15 +102,69 @@ func StartRSSLoop(cfg *ini.File, conn io.Writer, channel string) {
 					continue
 				}
 
-				latest := items[0]
-				if lastSent[feedUrl] != latest.Link {
-					lastSent[feedUrl] = latest.Link
-					cleanURL := removeQueryParams(latest.Link)
-					fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, latest.Title, cleanURL)
+				newItems := []Item{}
+				for _, item := range items {
+					if item.Link == lastSeen[feedUrl] {
+						break
+					}
+					newItems = append(newItems, item)
 				}
 
+				if len(newItems) > 0 {
+					lastSeen[feedUrl] = items[0].Link
+					pendingItems[source] = append(newItems, pendingItems[source]...)
+				}
 			}
 			time.Sleep(time.Duration(interval) * time.Minute)
+		}
+	}()
+
+	go func() {
+		loc, err := time.LoadLocation("Asia/Jakarta")
+		if err != nil {
+			log.Printf("Failed to load timezone: %v", err)
+			loc = time.Local // fallback
+		}
+
+		for {
+			now := time.Now().In(loc)
+			next10AM := time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, now.Location())
+			if now.After(next10AM) {
+				next10AM = next10AM.Add(24 * time.Hour)
+			}
+			sleepDuration := time.Until(next10AM)
+			log.Printf("> RSS: Sleeping until %v to send feed\n", next10AM)
+			time.Sleep(sleepDuration)
+
+			sentSources := make(map[string]bool)
+
+			fmt.Fprintf(conn, "PRIVMSG %s : 🍡 Anime", channel)
+			for source, items := range pendingItems {
+				for i := len(items) - 1; i >= 0; i-- {
+					item := items[i]
+					cleanURL := removeQueryParams(item.Link)
+					if strings.Contains(source, "Anime") {
+						fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
+						sentSources[source] = true
+					}
+				}
+			}
+
+			fmt.Fprintf(conn, "PRIVMSG %s : 🌐 World News", channel)
+			for source, items := range pendingItems {
+				for i := len(items) - 1; i >= 0; i-- {
+					item := items[i]
+					cleanURL := removeQueryParams(item.Link)
+					if strings.Contains(source, "Stories") {
+						fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
+						sentSources[source] = true
+					}
+				}
+			}
+
+			for source := range sentSources {
+				pendingItems[source] = nil
+			}
 		}
 	}()
 }
