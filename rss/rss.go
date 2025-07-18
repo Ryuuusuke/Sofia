@@ -138,25 +138,25 @@ func StartRSSLoop(cfg *ini.File, conn io.Writer, channel string) {
 
 			sentSources := make(map[string]bool)
 
-			fmt.Fprintf(conn, "PRIVMSG %s : 🍡 Anime", channel)
+			fmt.Fprintf(conn, "PRIVMSG %s :🍡 Anime\r\n", channel)
 			for source, items := range pendingItems {
 				for i := len(items) - 1; i >= 0; i-- {
 					item := items[i]
 					cleanURL := removeQueryParams(item.Link)
 					if strings.Contains(source, "Anime") {
-						fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
+						fmt.Fprintf(conn, "PRIVMSG %s :[\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
 						sentSources[source] = true
 					}
 				}
 			}
 
-			fmt.Fprintf(conn, "PRIVMSG %s : 🌐 World News", channel)
+			fmt.Fprintf(conn, "PRIVMSG %s : 🌐 World News\r\n", channel)
 			for source, items := range pendingItems {
 				for i := len(items) - 1; i >= 0; i-- {
 					item := items[i]
 					cleanURL := removeQueryParams(item.Link)
 					if strings.Contains(source, "Stories") {
-						fmt.Fprintf(conn, "PRIVMSG %s : [\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
+						fmt.Fprintf(conn, "PRIVMSG %s :[\x0311%s\x0F] \x0300,02%s\x0F - %s\r\n", channel, source, item.Title, cleanURL)
 						sentSources[source] = true
 					}
 				}
