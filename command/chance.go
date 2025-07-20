@@ -39,6 +39,6 @@ func chanceCommand(conn io.Writer, channel, sender string, args []string) {
 	}
 
 	fmt.Fprintf(conn, "PRIVMSG %s :Let me think..\r\n", channel)
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	fmt.Fprintf(conn, "PRIVMSG %s :%s\r\n", channel, response)
 }

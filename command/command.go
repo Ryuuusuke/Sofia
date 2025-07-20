@@ -16,6 +16,10 @@ func Register(name string, handler CommandFunc) {
 }
 
 func Handle(conn io.Writer, channel, sender, content string) {
+	if !strings.HasPrefix(content, ",") {
+		return
+	}
+
 	fields := strings.Fields(content)
 	if len(fields) == 0 {
 		return
