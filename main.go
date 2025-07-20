@@ -2,22 +2,19 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
-	"regexp"
+	"sofia/command"
 	"sofia/modules/github"
 	"sofia/rss"
 	"sofia/stdin"
+	"sofia/utils"
 	"strings"
 	"time"
 
-	"github.com/chromedp/chromedp"
 	"gopkg.in/ini.v1"
 )
 
@@ -60,6 +57,7 @@ func main() {
 	// core
 	for {
 		line, err := reader.ReadString('\n')
+		command.HandlePong(line)
 		if err != nil {
 			if err == io.EOF {
 				fmt.Println("Koneksi ditutup oleh server")
@@ -133,14 +131,20 @@ func main() {
 
 		if strings.Contains(line, "PRIVMSG "+channel) {
 			message := line
+			sender := utils.GetNickname(line)
+			parts := strings.SplitN(line, " :", 2)
+			if len(parts) >= 2 {
+				content := parts[1]
+				command.Handle(conn, channel, sender, content)
+			}
 			if strings.Contains(message, "(re") {
 				continue
 			}
 			if strings.Contains(message, "http") {
-				sender := getNickname(line)
-				urls := getUrl(message)
+				sender := utils.GetNickname(line)
+				urls := utils.GetUrl(message)
 				for _, url := range urls {
-					title, err := getUrlTitle(url)
+					title, err := utils.GetUrlTitle(url)
 					if err != nil {
 						fmt.Printf("failed to fetch web title from %s: %s\n", url, err)
 						continue
@@ -154,57 +158,4 @@ func main() {
 
 		time.Sleep(100 * time.Millisecond)
 	}
-}
-
-func getNickname(line string) string {
-	prefix := strings.SplitN(line, "!", 2)
-	return strings.TrimPrefix(prefix[0], ":")
-}
-
-func getUrl(message string) []string {
-	urlRegex := regexp.MustCompile(`https?://[^\s]+`)
-	urls := urlRegex.FindAllString(message, -1)
-	return urls
-}
-
-func getUrlTitle(url string) (string, error) {
-	if isYt(url) {
-		oembedURL := "https://www.youtube.com/oembed?url=" + url
-
-		resp, err := http.Get(oembedURL)
-		if err != nil {
-			return "", fmt.Errorf("failed to fetch oEmbed data: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("oEmbed status code is not 200: %d", resp.StatusCode)
-		}
-
-		var oembedResp YtOembedResp
-		err = json.NewDecoder(resp.Body).Decode(&oembedResp)
-		if err != nil {
-			return "", fmt.Errorf("failed to decode oEmbed JSON: %w ", err)
-		}
-
-		return oembedResp.Title, nil
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	ctx, cancelBrowser := chromedp.NewContext(ctx)
-	defer cancelBrowser()
-
-	var title string
-	err := chromedp.Run(ctx, chromedp.Navigate(url), chromedp.Title(&title))
-	if err != nil {
-		return "", err
-	}
-	return title, nil
-}
-
-func isYt(url string) bool {
-	lower := strings.ToLower(url)
-	return strings.Contains(lower, "youtube.com/watch") || strings.Contains(lower, "youtu.be/")
 }
