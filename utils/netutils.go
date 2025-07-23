@@ -22,8 +22,16 @@ func GetNickname(line string) string {
 }
 
 func GetUrl(message string) []string {
-	urlRegex := regexp.MustCompile(`https?://[^\s]+`)
-	return urlRegex.FindAllString(message, -1)
+	urlRegex := regexp.MustCompile(`<?(https?://[^<>\s]+)>?`)
+	matches := urlRegex.FindAllStringSubmatch(message, -1)
+
+	urls := make([]string, 0) // gg ga tuh deklarasi nya wkwokwokokok
+	for _, match := range matches {
+		if len(match) > 1 {
+			urls = append(urls, match[1])
+		}
+	}
+	return urls
 }
 
 func IsYoutube(url string) bool {
