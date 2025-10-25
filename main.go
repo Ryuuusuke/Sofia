@@ -123,7 +123,7 @@ func main() {
 				nick := strings.TrimPrefix(prefix[0], ":")
 
 				if nick != nickname {
-					message := fmt.Sprintf("PRIVMSG %s :Selamat datang, %s-sama! Mohon tunggu sebentar, Ramu-neechan akan memberikanmu akses voice agar kamu bisa ikut berbicara disini\r\n", channel, nick)
+					message := fmt.Sprintf("NOTICE %s :Selamat datang, %s-sama! Mohon tunggu sebentar, Ramu-neechan akan memberikanmu akses voice agar kamu bisa ikut berbicara disini\r\n", channel, nick)
 					fmt.Fprint(conn, message)
 				}
 			}
