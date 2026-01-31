@@ -10,7 +10,7 @@
 
 <br>
 
-## 🔧 Configuration
+## Configuration
 
 Copy `config.ini.example` to `config.ini` and edit the file:
 
@@ -37,7 +37,7 @@ repo = Sofia
 
 <br>
 
-## 🚀 Running the Bot
+##  Running the Bot
 
 Run directly with:
 
@@ -68,14 +68,14 @@ Type directly into the terminal where the bot is running to send a message to th
 
 <br>
 
-## 📰 RSS Feed
+## RSS Feed
 
 You can add your own RSS modules under the `rss/` folder.
 The bot is modular and supports custom RSS loops tailored to your needs.
 
 <br>
 
-## 🧱 Directory Structure
+## Directory Structure
 
 ```
 .
@@ -88,7 +88,7 @@ The bot is modular and supports custom RSS loops tailored to your needs.
 
 <br>
 
-## 📦 Dependencies
+## Dependencies
 
 * [`go-ini/ini`](https://github.com/go-ini/ini) - For parsing `.ini` configuration files
 * [`chromedp`](https://github.com/chromedp/chromedp) - For fetching web page titles via headless Chrome
@@ -96,7 +96,7 @@ The bot is modular and supports custom RSS loops tailored to your needs.
 
 <br>
 
-## 📄 License
+## License
 
 This project is licensed under the **BSD 3-Clause License**.
 See the [`LICENSE`](./LICENSE) file for full details.
