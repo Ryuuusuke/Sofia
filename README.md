@@ -54,13 +54,13 @@ go build -o sofia .
 
 <br>
 
-## 🖥️ Sending Messages from Terminal
+## Sending Messages from Terminal
 
 Type directly into the terminal where the bot is running to send a message to the configured IRC channel.
 
 <br>
 
-## 🌐 Link Preview Feature
+## Link Preview Feature
 
 * When someone posts a link in the channel, the bot will try to fetch the **page title** automatically.
 * YouTube links are fetched using the [YouTube oEmbed API](https://www.youtube.com/oembed).
